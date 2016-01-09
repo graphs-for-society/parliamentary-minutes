@@ -17,8 +17,8 @@ def get_milletvekili_listesi():
     if not response: # TODO: make other checks.
         print "ERROR in request"
         return
-    content = response.content
-    soup = BeautifulSoup(content, "html.parser")
+    text = response.text
+    soup = BeautifulSoup(text, "html.parser")
 
     #rows = soup.find_all("tr", attrs={'bgcolor': '#FFFFFF'})
     rows = soup.select('tr[bgcolor="#FFFFFF"]')
@@ -68,7 +68,7 @@ def get_rep_general_assembly_talk(talk_id, rep_id, term_id):
             exp_backoff *= 2
     if not response:
         return ""
-    soup = BeautifulSoup(response.content)
+    soup = BeautifulSoup(response.text)
     table = soup.select("table:nth-of-type(2)")[0]
     return table.text
 
@@ -105,7 +105,7 @@ def get_rep_general_assembly_talks(rep_row, interval=None):
         return []
 
     result = []
-    soup = BeautifulSoup(response.content)
+    soup = BeautifulSoup(response.text)
     rows = soup.select("tr")
     first_row = 0
     for row in rows:
