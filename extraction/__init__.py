@@ -10,7 +10,7 @@ TURKISH_ALPHABET = "[a-zçğıöüş]"
 
 name_surname = r"(((%s+ ){2,})\(\w+\))" % TURKISH_ALPHABET_UPPER
 
-PARTIES = set([u"AK PARTİ", "CHP", "HDP", "MHP"])
+PARTIES = {u"AK PARTİ", "CHP", "HDP", "MHP"}
 reaction_regex = ur"\(((.*) sıralarından (\w+))\)"
 
 # regex = re.compile("BURCU KÖKSAL \([^\)]*\) ")
@@ -119,8 +119,15 @@ def create_output(filename, outputs):
 
 
 def main():
-    function_name = sys.argv[1]
-    input_file = sys.argv[2]
+    import argparse
+    parser = argparse.ArgumentParser(description='Extract information from Parliamentary minutes.')
+    parser.add_argument("--input", required=True)
+    parser.add_argument("--function", required=True, help="The function which is used for information extraction")
+    args = parser.parse_args()
+
+    function_name = args.function
+    input_file = args.input
+    print >> sys.stderr, "Function: %s\nInput: %s" % (function_name, input_file)
     globals()[function_name](input_file)
 
 
