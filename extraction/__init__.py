@@ -11,7 +11,7 @@ TURKISH_ALPHABET = "[a-zçğıöüş]"
 name_surname = r"(((%s+ ){2,})\(\w+\))" % TURKISH_ALPHABET_UPPER
 
 PARTIES = set([u"AK PARTİ", "CHP", "HDP", "MHP"])
-reaction_regex = ur"\(((.*) sıralarndan (\w+))\)"
+reaction_regex = ur"\(((.*) sıralarından (\w+))\)"
 
 # regex = re.compile("BURCU KÖKSAL \([^\)]*\) ")
 # print '\n'.join(element[0] for element in re.findall(name_surname, text))
@@ -54,56 +54,68 @@ def reps_convs(representative, lines):
 
 
 def create_reactions_data(input_file):
-    data = read_scrape_data(input_file)
-    text = data["talk_script"]
-    representative = data["rep_name"]
-    representative_party = data["representative_party"]
-    talk_id = data["talk_id"]
-    date = data["session_date"]
-    matches = re.findall(reaction_regex, text, flags=re.U)
-    print >> sys.stderr, matches
-    reactions = []
-    for match in matches:
-        _, party_text, reaction = match
-        parties = get_party_names(party_text)
-        for party in parties:
+    records = read_scrape_data(input_file)
+    outputs = []
+    for record in records:
+        text = record["talk_script"]
+        representative = record["rep_name"]
+        representative_party = record["representative_party"]
+        talk_id = record["talk_id"]
+        date = record["session_date"]
+        term_id = record['term_id']
+        matches = re.findall(reaction_regex, text, flags=re.U)
+        reactions = []
+        for match in matches:
+            _, party_text, reaction = match
+            parties = get_party_names(party_text)
+            for party in parties:
+                d = dict()
+                d["action"] = "edge_create"
+                d["from_name"] = party
+                d["from_type"] = "Parti"
+                d["name"] = reaction.upper()
+                d["to_name"] = talk_id
+                d["to_type"] = "Konuşma"
+                d['properties'] = {"speech_date": date, "speech_url": "www.buralar_yesillenecek.com",
+                                   "term": term_id}
+                reactions.append(d)
+
+        if len(reactions) > 0:
             d = dict()
             d["action"] = "edge_create"
-            d["from_name"] = party
-            d["from_type"] = "Parti"
-            d["name"] = reaction.upper()
+            d["from_name"] = representative
+            d["from_type"] = "Milletvekili"
+            d["name"] = "KONUŞTU"
             d["to_name"] = talk_id
             d["to_type"] = "Konuşma"
             reactions.append(d)
 
-    if len(reactions) > 0:
-        d = dict()
-        d["action"] = "edge_create"
-        d["from_name"] = representative
-        d["from_type"] = "MV"
-        d["name"] = "KONUŞTU"
-        d["to_name"] = talk_id
-        d["to_type"] = "Konuşma"
-        reactions.append(d)
-
-        d = dict()
-        d["action"] = "edge_create"
-        d["from_name"] = representative_party
-        d["from_type"] = "MV"
-        d["name"] = "ÜYESİ"
-        d["to_name"] = representative
-        d["to_type"] = "MV"
-        reactions.append(d)
-
-    create_output("sample_out.json", reactions)
+            d = dict()
+            d["action"] = "edge_create"
+            d["from_name"] = representative_party.upper()
+            d["from_type"] = "Parti"
+            d["name"] = "ÜYESİ"
+            d["to_name"] = representative
+            d["to_type"] = "Milletvekili"
+            reactions.append(d)
+        if len(reactions) != 0:
+            outputs.append(reactions)
+    create_output("extraction_output.json", outputs)
 
 
 def read_scrape_data(filename):
-    return ujson.load(codecs.open(filename, encoding='utf-8'))
+    records = []
+    for line in codecs.open(filename, encoding='utf-8'):
+        records.append(ujson.loads(line))
+
+    return records
 
 
-def create_output(filename, output):
-    ujson.dump(output, codecs.open(filename, 'w'))
+def create_output(filename, outputs):
+    f = codecs.open(filename, 'w')
+    for output in outputs:
+        for reaction in output:
+            f.write("%s\n" % ujson.dumps(reaction))
 
 
 def main():
