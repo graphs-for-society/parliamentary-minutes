@@ -43,6 +43,7 @@ def create_node_types():
     d["name"] = "Konuşma"
     outputs.append(d)
 
+    return outputs
 
 def get_party_names(party_text):
     matched_parties = []
@@ -81,7 +82,7 @@ def reps_convs(representative, lines):
 
 def create_reactions_data(input_file):
     records = read_scrape_data(input_file)
-    outputs = []
+    outputs = create_node_types()
     for record in records:
         # Read representative properties
         representative = record["rep_name"]
@@ -181,8 +182,7 @@ def read_scrape_data(filename):
 def create_output(filename, outputs):
     f = codecs.open(filename, 'w')
     for output in outputs:
-        for reaction in output:
-            f.write("%s\n" % ujson.dumps(reaction))
+        f.write("%s\n" % ujson.dumps(output))
 
 
 def main():
