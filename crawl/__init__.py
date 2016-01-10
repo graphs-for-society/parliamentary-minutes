@@ -68,7 +68,7 @@ def get_rep_general_assembly_talk(talk_id, rep_id, term_id):
             exp_backoff *= 2
     if not response:
         return ""
-    soup = BeautifulSoup(response.text)
+    soup = BeautifulSoup(response.text, "html.parser")
     table = soup.select("table:nth-of-type(2)")[0]
     return table.text
 
@@ -81,6 +81,19 @@ def is_in_interval(session_date, interval):
         return True
     else:
         return False
+
+
+def generate_talk_url(talk_id):
+    return "https://www.tbmm.gov.tr/develop/owa/genel_kurul.cl_getir?pEid={}".format(talk_id)
+
+
+def generate_representative_profile_url(rep_id, term_id):
+    return "https://www.tbmm.gov.tr/develop/owa/milletvekillerimiz_sd.bilgi?p_donem={}&p_sicil={}".format(term_id,
+                                                                                                     rep_id)
+
+
+def generate_representative_profile_image_url(rep_id):
+    return "https://www.tbmm.gov.tr/mv_resim/{}.jpg".format(rep_id)
 
 def get_rep_general_assembly_talks(rep_row, interval=None):
     rep_id = rep_row['representative_id']
@@ -105,7 +118,7 @@ def get_rep_general_assembly_talks(rep_row, interval=None):
         return []
 
     result = []
-    soup = BeautifulSoup(response.text)
+    soup = BeautifulSoup(response.text, "html.parser")
     rows = soup.select("tr")
     first_row = 0
     for row in rows:
@@ -135,16 +148,19 @@ def get_rep_general_assembly_talks(rep_row, interval=None):
                                                                    talk_id,
                                                                    session_date))
 
-        result.append({'rep_name': rep_row['representative_name'],
-                 'rep_id': rep_row['representative_id'],
+        result.append({"rep_name": rep_row['representative_name'],
+                 "rep_id": rep_row['representative_id'],
+                 "rep_profile_url": generate_representative_profile_url(rep_id, term_id),
+                 "rep_profile_image_url": generate_representative_profile_image_url(rep_id),
                  "representative_party": rep_row['representative_party'],
                  "term_id": rep_row['term_id'],
                  "legislation_term": legislation_term,
                  "session_id": session_id,
-                 "session_date": session_date.strftime("%Y%m%d"),
+                 "session_date": convert_datetime_to_unix(session_date),
                  "talk_subject": talk_subject,
                  "talk_id": talk_id,
-                 "talk_script": talk_text
+                 "talk_script": talk_text,
+                 "talk_url": generate_talk_url(talk_id)
                  })
     return result
 
@@ -154,7 +170,7 @@ def run(start_date=None, end_date=None):
 
     if start_date and end_date:
         interval = [datetime.datetime.strptime(start_date, "%d/%m/%Y"),
-                    datetime.datetime.strptime(start_date, "%d/%m/%Y")]
+                    datetime.datetime.strptime(end_date, "%d/%m/%Y")]
     else:
         interval = None
 
@@ -186,6 +202,12 @@ def run(start_date=None, end_date=None):
 
     done_list.close()
 
+def convert_datetime_to_unix(d):
+    '''
+    :param d: datetime object
+    :return: unix time conversion in miliseconds
+    '''
+    return int(time.mktime(d.timetuple())*1000)
 
 if __name__ == "__main__":
     import argparse
