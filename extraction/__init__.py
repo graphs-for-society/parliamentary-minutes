@@ -102,7 +102,7 @@ def create_reactions_data(input_file):
         term_id = record['term_id']
         matches = re.findall(reaction_regex, text, flags=re.U)
 
-        for match in matches:
+        if len(matches) > 0:
             # Create party node if it doesn't exist
             if representative_party not in NODES['Parti']:
                 NODES['Parti'].add(representative_party)
@@ -153,6 +153,8 @@ def create_reactions_data(input_file):
             d["to_name"] = talk_name
             d["to_type"] = "Konuşma"
             outputs.append(d)
+
+        for match in matches:
 
             _, party_text, reaction = match
             parties = get_party_names(party_text)
