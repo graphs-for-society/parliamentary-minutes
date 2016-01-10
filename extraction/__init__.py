@@ -7,6 +7,7 @@ import codecs
 TURKISH_ALPHABET_UPPER = "[A-ZÇĞİÖÜŞ]"
 TURKISH_ALPHABET = "[a-zçğıöüş]"
 
+
 name_surname = r"(((%s+ ){2,})\(\w+\))" % TURKISH_ALPHABET_UPPER
 
 PARTIES = set([u"AK PARTİ", "CHP", "HDP", "MHP"])
