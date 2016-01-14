@@ -2,8 +2,39 @@
 
 
 {% block js %}
+
 {% endblock %}
 
 
 {% block main %}
+
+{% if posted %}
+
+{{ path }}
+
+{% else %}
+
+<form action="/" method="post">
+
+    <select name="representative_name">
+  <option value="Mehmet Naci BOSTANCI">Mehmet Naci BOSTANCI</option>
+</select>
+
+        <!--<select name="via">-->
+  <!--<option value="volvo">KONUŞTU,ALKIŞLAR</option>-->
+  <!--<option value="saab">ALKIŞLAR</option>-->
+<!--</select>-->
+
+            <select name="party">
+  <!--<option value="AK PARTİ">AK PARTİ</option>-->
+                <option value="CHP">CHP</option>
+            </select>
+
+
+                <input type="submit" value="find paths">
+
+</form>
+
+{% endif %}
+
 {% endblock %}
