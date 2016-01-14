@@ -3,38 +3,134 @@
 
 {% block js %}
 
+    {% if not paths %}
+
+        <script>
+            var repNames = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('rep_name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                identify: function (obj) {
+                    return obj.rep_name;
+                },
+                prefetch: 'data/rep_names.json'
+            });
+
+            function repNamesWithDefaults(q, sync) {
+                if (q === '') {
+                    sync(repNames.get('Mehmet Naci BOSTANCI', 'Deniz BAYKAL'));
+                }
+
+                else {
+                    repNames.search(q, sync);
+                }
+            }
+
+            $('#rep_names .typeahead').typeahead({
+                        minLength: 0,
+                        highlight: true
+                    },
+                    {
+                        name: 'rep_names',
+                        display: 'rep_name',
+                        source: repNamesWithDefaults
+                    });
+
+            /*
+             Party names
+             */
+            var partyNames = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('party_name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                identify: function (obj) {
+                    return obj.party_name;
+                },
+                prefetch: 'data/party_names.json'
+            });
+
+            function partyNamesWithDefaults(q, sync) {
+                if (q === '') {
+                    sync(partyNames.get('CHP', 'AK PARTİ', 'HDP', 'MHP'));
+                }
+
+                else {
+                    partyNames.search(q, sync);
+                }
+            }
+
+            $('#party_names .typeahead').typeahead({
+                        minLength: 0,
+                        highlight: true
+                    },
+                    {
+                        name: 'party_names',
+                        display: 'party_name',
+                        source: partyNamesWithDefaults
+                    });
+        </script>
+
+    {% endif %}
+
 {% endblock %}
 
 
 {% block main %}
 
-{% if posted %}
+    <div class="panel panel-default">
+        <div class="panel-heading">Milletvekilinden partiye nasıl gidilir?</div>
+        {% if paths %}
 
-{{ path }}
+            <div class="panel-body">
+            <p>
+                {{ request['representative_name'] }}'den {{ request['party'] }}'ye giden tüm yollar aşağıda listelenmiştir.
+            </p>
+            </div>
 
-{% else %}
+            <table class="table">
+                {% for path in paths %}
+                    <tr>
+                        <td>{{ path.path_string }}</td>
+                        <td><a href="{{ path.reference }}">Visit</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
 
-<form action="/" method="post">
+        {% else %}
 
-    <select name="representative_name">
-  <option value="Mehmet Naci BOSTANCI">Mehmet Naci BOSTANCI</option>
-</select>
-
-        <!--<select name="via">-->
-  <!--<option value="volvo">KONUŞTU,ALKIŞLAR</option>-->
-  <!--<option value="saab">ALKIŞLAR</option>-->
-<!--</select>-->
-
-            <select name="party">
-  <!--<option value="AK PARTİ">AK PARTİ</option>-->
-                <option value="CHP">CHP</option>
-            </select>
+            <div class="panel-body">
 
 
-                <input type="submit" value="find paths">
+                <form action="/" method="post">
 
-</form>
+                    <div id="rep_names">
+                        <input name="representative_name" class="typeahead" type="text"
+                               placeholder="Mehmet Naci BOSTANCI">
+                    </div>
 
-{% endif %}
+                    <div id="party_names">
+                        <input name="party" class="typeahead" type="text" placeholder="CHP">
+                    </div>
+
+                    <input type="submit" value="find paths">
+
+                </form>
+
+            </div>
+
+
+
+
+            {#            <select name="representative_name">#}
+            {#                <option value="Mehmet Naci BOSTANCI">Mehmet Naci BOSTANCI</option>#}
+            {#            </select>#}
+            {##}
+            {#            <select name="party">#}
+            {#                <!--<option value="AK PARTİ">AK PARTİ</option>-->#}
+            {#                <option value="CHP">CHP</option>#}
+            {#            </select>#}
+
+        {% endif %}
+    </div>
+
+
 
 {% endblock %}
