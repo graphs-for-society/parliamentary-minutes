@@ -5,6 +5,17 @@ import ujson
 import codecs
 from collections import defaultdict as dd
 
+import datetime
+import time
+
+
+def convert_datetime_to_unix(d):
+    '''
+    :param d: datetime object
+    :return: unix time conversion in miliseconds
+    '''
+    return int(time.mktime(d.timetuple())*1000)
+
 TURKISH_ALPHABET_UPPER = "[A-ZÇĞİÖÜŞ]"
 TURKISH_ALPHABET = "[a-zçğıöüş]"
 
@@ -170,7 +181,7 @@ def create_reactions_data(input_file):
                 #                  "term": term_id}
                 outputs.append(d)
 
-    create_output("extraction_output.json", outputs)
+    create_output("../data/extraction_output-{}.json".format(convert_datetime_to_unix(datetime.datetime.now())), outputs)
 
 
 def read_scrape_data(filename):
@@ -188,6 +199,11 @@ def create_output(filename, outputs):
 
 
 def main():
+    '''
+    Run as
+    python __init__.py --input all-talks-combined.json --function create_reactions_data
+    :return:
+    '''
     import argparse
     parser = argparse.ArgumentParser(description='Extract information from Parliamentary minutes.')
     parser.add_argument("--input", required=True)
