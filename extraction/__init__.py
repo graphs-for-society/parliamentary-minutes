@@ -94,9 +94,11 @@ def reps_convs(representative, lines):
 def create_reactions_data(input_file):
     records = read_scrape_data(input_file)
     outputs = create_node_types()
+    rep_names = {}
     for record in records:
         # Read representative properties
         representative = record["rep_name"]
+        rep_names[representative] = 1
         representative_party = record["representative_party"]
         if representative_party == "AK Parti":
             representative_party = "AK PARTİ"
@@ -181,6 +183,7 @@ def create_reactions_data(input_file):
                 #                  "term": term_id}
                 outputs.append(d)
 
+    create_output("../data/rep_names.json", [{'rep_name': rep_name} for rep_name in sorted(rep_names.keys())], enclosed_in_array=True)
     create_output("../data/extraction_output-{}.json".format(convert_datetime_to_unix(datetime.datetime.now())), outputs)
 
 
@@ -192,10 +195,21 @@ def read_scrape_data(filename):
     return records
 
 
-def create_output(filename, outputs):
+def create_output(filename, outputs, enclosed_in_array=False):
     f = codecs.open(filename, 'w')
+    delimiter = "\n"
+    if enclosed_in_array:
+        f.write("[\n")
+        delimiter = ",\n"
+    first = True
     for output in outputs:
-        f.write("%s\n" % ujson.dumps(output))
+        if first:
+            f.write("%s" % (ujson.dumps(output)))
+            first = False
+        else:
+            f.write("%s%s" % (delimiter, ujson.dumps(output)))
+    if enclosed_in_array:
+        f.write("]\n")
 
 
 def main():
