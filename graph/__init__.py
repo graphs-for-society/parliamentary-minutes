@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 import json
+import os
 
 from graphcommons import GraphCommons, Signal
 
-import ConfigParser
+# import ConfigParser
+#
+# config = ConfigParser.ConfigParser()
+#
+# config.read("config.ini")
 
-config = ConfigParser.ConfigParser()
+# api_key = config.get("api", "api_key")
+# graph_id = config.get("graph", "graph_id")
 
-config.read("config.ini")
-
-api_key = config.get("api", "api_key")
-graph_id = config.get("graph", "graph_id")
+api_key = os.environ['API_KEY']
+graph_id = os.environ['GRAPH_ID']
 
 class GraphApi():
 
