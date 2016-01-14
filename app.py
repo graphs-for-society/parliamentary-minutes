@@ -35,15 +35,6 @@ def home():
     else:
         return render_template('home.html')
 
-    # """Render website's home page."""
-    # if len(paths) > 0:
-    #     paths_text = ""
-    #     # for p in paths:
-    #     #     paths_text += p['path_string'] + '\t'
-    #     #     paths_text += p['reference'] + '\n'
-    #
-    # else:
-
 
 ###
 # The functions below should be applicable to all Flask apps.
