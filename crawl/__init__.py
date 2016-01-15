@@ -223,6 +223,10 @@ def run(start_date=None, end_date=None):
 
 
 if __name__ == "__main__":
+    """
+    Run as
+    python crawl/__init__.py --start_date 11/01/2016 --end_date 13/01/2016
+    """
     import argparse
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument("--start_date", nargs="?")
