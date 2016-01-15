@@ -1,12 +1,20 @@
-
-from bs4 import BeautifulSoup
-import requests
-import re, json
+import datetime
+import glob
+import json
+import re
 import time
 
-import datetime
+import requests
+from bs4 import BeautifulSoup
 
 starting_url = "https://www.tbmm.gov.tr/develop/owa/milletvekillerimiz_sd.liste"
+
+def convert_datetime_to_unix(d):
+    '''
+    :param d: datetime object
+    :return: unix time conversion in miliseconds
+    '''
+    return int(time.mktime(d.timetuple())*1000)
 
 def get_milletvekili_listesi():
     '''
@@ -62,7 +70,7 @@ def get_rep_general_assembly_talk(talk_id, rep_id, term_id):
         try:
             response = requests.get(talk_url, headers=headers)
             finish = True
-        except requests.exceptions.ConnectionError, e:
+        except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError) as e:
             print e
             time.sleep(exp_backoff)
             exp_backoff *= 2
@@ -77,7 +85,7 @@ def is_in_interval(session_date, interval):
     if not interval:
         return True
 
-    if session_date > interval[0] and session_date < interval[1]:
+    if interval[0] <= session_date <= interval[1]:
         return True
     else:
         return False
@@ -109,7 +117,7 @@ def get_rep_general_assembly_talks(rep_row, interval=None):
         try:
             response = requests.get(url, headers=headers)
             finish = True
-        except requests.exceptions.ConnectionError, e:
+        except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError) as e:
             print e
             time.sleep(exp_backoff)
             exp_backoff *= 2
@@ -176,7 +184,7 @@ def run(start_date=None, end_date=None):
 
     done_dict = dict()
     try:
-        done_list = open("done-representatives.lst", "r")
+        done_list = open("crawl/done-representatives.lst", "r")
         lines = done_list.readlines()
         for line in lines:
             done_dict[line.strip()] = 1
@@ -184,16 +192,16 @@ def run(start_date=None, end_date=None):
     except IOError, e:
         print e
 
-    done_list = open("done-representatives.lst", "a")
+    done_list = open("crawl/done-representatives.lst", "a")
 
-    for rep_row in rep_list:
+    for (index, rep_row) in zip(range(len(rep_list)), rep_list):
         if rep_row['representative_id'] in done_dict:
-            print("PASSED Rep. name: {}".format(rep_row['representative_name'].encode('utf-8')))
+            print("{} of {} PASSED Rep. name: {}".format(index, len(rep_list), rep_row['representative_name'].encode('utf-8')))
         else:
-            print("Rep. name: {}".format(rep_row['representative_name'].encode('utf-8')))
+            print("{} of {} Rep. name: {}".format(index, len(rep_list), rep_row['representative_name'].encode('utf-8')))
             talks = get_rep_general_assembly_talks(rep_row, interval)
             for talk in talks:
-                f = open("representative-talks-rep_id-{}-date-{}.json".format(rep_row['representative_id'],
+                f = open("crawl/representative-talks-rep_id-{}-date-{}.json".format(rep_row['representative_id'],
                                                                               talk['session_date']), "a")
                 f.write(json.dumps(talk) + "\n")
                 done_list.write(rep_row['representative_id'].encode('utf-8') + "\n")
@@ -202,12 +210,17 @@ def run(start_date=None, end_date=None):
 
     done_list.close()
 
-def convert_datetime_to_unix(d):
-    '''
-    :param d: datetime object
-    :return: unix time conversion in miliseconds
-    '''
-    return int(time.mktime(d.timetuple())*1000)
+    f = open("data/all-talks-combined-{}-{}-{}.json".format(start_date,
+                                                               end_date,
+                                                               convert_datetime_to_unix(datetime.datetime.now())),
+             "w")
+    for filename in glob.glob("crawl/representative-talks-rep_id-*-date-*.json"):
+        with open(filename, "r") as talk_file:
+            lines = talk_file.readlines()
+            for line in lines:
+                f.write(line)
+    f.close()
+
 
 if __name__ == "__main__":
     import argparse

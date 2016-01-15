@@ -6,39 +6,49 @@ Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 
+import json
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
 
+from graph import GraphApi, api_key, graph_id
+
+graph = GraphApi(api_key, graph_id)
 
 ###
 # Routing for your application.
 ###
 
-@app.route('/')
+@app.route('/', methods=['POST', 'GET'])
 def home():
-    """Render website's home page."""
-    return render_template('home.html')
-
-
-@app.route('/about/')
-def about():
-    """Render the website's about page."""
-    return render_template('about.html')
+    # posted = False
+    # paths = ''
+    # print "girdi"
+    if request.method == 'POST':
+        # posted = True
+        print "Query for {} --> {}".format(request.form['representative_name'], request.form['party'])
+        paths = graph.get_paths(unicode(request.form['representative_name']), unicode(request.form['party']))
+        return render_template('home.html', paths=paths)
+    else:
+        return render_template('home.html')
 
 
 ###
 # The functions below should be applicable to all Flask apps.
 ###
 
-@app.route('/<file_name>.txt')
-def send_text_file(file_name):
-    """Send your static text file."""
-    file_dot_text = file_name + '.txt'
-    return app.send_static_file(file_dot_text)
+# @app.route('/data/<file_name>.json')
+# def send_text_file(file_name):
+#     """Send your static text file."""
+#     file_dot_text = "data/" + file_name + '.json'
+#     return app.send_static_file(file_dot_text)
+
+@app.route('/data/<path:path>')
+def send_json(path):
+    return send_from_directory('data', path)
 
 
 @app.after_request
