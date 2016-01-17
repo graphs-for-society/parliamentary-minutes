@@ -14,7 +14,6 @@ from graphcommons import GraphCommons, Signal
 # graph_id = config.get("graph", "graph_id")
 
 api_key = os.environ['API_KEY']
-graph_id = os.environ['GRAPH_ID']
 
 class GraphApi():
 

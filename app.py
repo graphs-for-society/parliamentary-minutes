@@ -14,7 +14,9 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
 
-from graph import GraphApi, api_key, graph_id
+from graph import GraphApi, api_key
+
+graph_id = os.environ['GRAPH_ID']
 
 graph = GraphApi(api_key, graph_id)
 
