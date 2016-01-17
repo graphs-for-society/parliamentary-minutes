@@ -183,8 +183,8 @@ def create_reactions_data(input_file):
                 #                  "term": term_id}
                 outputs.append(d)
 
-    create_output("../data/rep_names.json", [{'rep_name': rep_name} for rep_name in sorted(rep_names.keys())], enclosed_in_array=True)
-    create_output("../data/extraction_output-{}.json".format(convert_datetime_to_unix(datetime.datetime.now())), outputs)
+    create_output("data/rep_names.json", [{'rep_name': rep_name} for rep_name in sorted(rep_names.keys())], enclosed_in_array=True)
+    create_output("data/extraction_output-{}.json".format(convert_datetime_to_unix(datetime.datetime.now())), outputs)
 
 
 def read_scrape_data(filename):
@@ -215,7 +215,8 @@ def create_output(filename, outputs, enclosed_in_array=False):
 def main():
     '''
     Run as
-    python __init__.py --input all-talks-combined.json --function create_reactions_data
+    (first ensure that there is a directory named data in the current directory)
+    python crawl/__init__.py --input data/all-talks-combined.json --function create_reactions_data
     :return:
     '''
     import argparse
