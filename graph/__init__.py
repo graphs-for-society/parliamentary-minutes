@@ -45,7 +45,7 @@ class GraphApi(object):
 
     @staticmethod
     def create_nodetype_dicts(nodes):
-        names = [party.name for party in nodes]
+        names = [node.name for node in nodes]
         node_dict = dict(zip(names, nodes))
         return node_dict
 
@@ -54,6 +54,17 @@ class GraphApi(object):
             graph = self.api.graphs(self.graph_id)
             self.graph = graph
         return self.graph
+
+    def get_all_node_types(self):
+        graph = self.get_graph()
+        node_types = [t.name for t in graph._node_types.values()]
+        return dict((t, self.get_nodes_by_node_type(t)) for t in node_types)
+
+    def get_node_ids_types_names(self):
+        types = self.get_all_node_types()
+        for t, nodes in types.iteritems():
+            for node in nodes:
+                yield node.name, node.id, t
 
     def get_paths(self, from_id, to_id, **kwargs):
 
@@ -78,15 +89,27 @@ class GraphApi(object):
             print("Updated graph... {} of {}".format(min((i + 1) * chunk_size, len(signals)), len(signals)))
 
 
-def main():
+def parse_arguments():
     import argparse
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument("--version", nargs="?")
     parser.add_argument("input_filename")
-    parser.add_argument("--graph_id", nargs="?")
+
+    parser.add_argument("--version", nargs="?")
+    parser.add_argument("--graph-id", nargs="?")
     parser.add_argument("--api-key", required=False, default=None)
     args = parser.parse_args()
+    return args
 
+
+def test():
+    args = parse_arguments()
+    api = GraphApi(args.api_key, args.graph_id)
+    nodes = api.get_node_ids_types_names()
+    print list(nodes)
+
+
+def main():
+    args = parse_arguments()
     if args.api_key is not None:
         api_key = args.api_key
     else:
@@ -97,7 +120,6 @@ def main():
     if args.graph_id:
         graph_id = args.graph_id
         graph = GraphApi(api_key, graph_id)
-
         print graph.api.status()
         signals = graph.create_signals(args.input_filename)
     else:
@@ -116,5 +138,5 @@ def main():
     graph.upsert_edges(signals)
 
 if __name__ == "__main__":
-    main()
+    test()
 
