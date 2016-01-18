@@ -23,6 +23,7 @@ class GraphApi():
             self.graph_id = graph_id
 
         self.api = GraphCommons(api_key)
+        self.graph = None
 
     def create_new_graph(self, graph_name, subtitle, description):
 
@@ -50,7 +51,7 @@ class GraphApi():
         return result
 
     @staticmethod
-    def get_nodes(graph, node_type):
+    def get_nodes_by_node_type(graph, node_type):
         return filter(lambda node: node.type == node_type, graph.nodes)
 
     @staticmethod
@@ -59,26 +60,22 @@ class GraphApi():
         node_dict = dict(zip(names, nodes))
         return node_dict
 
-    def get_paths(self, rep_name, party):
-        graph = self.api.graphs(self.graph_id)
-        rep_nodes, parties = map(lambda node_type: GraphApi.get_nodes(graph, node_type), ["Milletvekili", "Parti"])
-        reps_dict, parties_dict = map(GraphApi.create_nodetype_dicts, [rep_nodes, parties])
-        party = unicode(party)
-        rep_name = unicode(rep_name)
-        party_id = parties_dict[party].id
-        rep_id = reps_dict[rep_name].id
-        d = {"from": rep_id, "to": party_id, "limit": 30}
-        response = self.api.get_path(self.graph_id, d)
-        response_nodes = response['nodes']
+    def get_graph(self, refresh=False):
+        if self.graph is None or refresh:
+            graph = self.api.graphs(self.graph_id)
+            self.graph = graph
+        return self.graph
+
+    def get_paths(self, from_id, to_id, **kwargs):
+
+        d = {"from": from_id, "to": to_id}
+        d.update(kwargs)  # add other key-value pairs.
+
+        paths = self.api.paths(self.graph_id, d)
         to_return = []
-        for r in response['paths']:
-            d = {}
-            # speecher = r['nodes'][0]
-            speech_id = r['nodes'][1]
-            speech = response_nodes[speech_id]
-            d['reference'] = speech['reference']
-            d['path_string'] = r['path_string']
-            to_return.append(d)
+        for p in paths:
+            speech = p['nodes'][1]
+            to_return.append(dict(reference=speech.reference, path_string=p['path_string']))
 
         return to_return
 
@@ -92,7 +89,7 @@ class GraphApi():
             print("Updated graph... {} of {}".format(min((i + 1) * chunk_size, len(signals)), len(signals)))
 
 
-if __name__ == "__main__":
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Process some integers.')
@@ -121,5 +118,10 @@ if __name__ == "__main__":
     f.close()
 
     graph.upsert_edges(signals)
+
+
+
+if __name__ == "__main__":
+    main()
 
     # push_changes(args.input_filename)
