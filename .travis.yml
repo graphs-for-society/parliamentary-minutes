@@ -11,3 +11,4 @@ deploy:
   on:
     repo: graphs-for-society/parliamentary-minutes
     branch: release
+script: nosetests
