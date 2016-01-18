@@ -1,0 +1,13 @@
+language: python
+python:
+- '2.7'
+- '3.3'
+- pypy
+deploy:
+  provider: heroku
+  api_key:
+    secure: Dph6Nn2j2KeuDihb+CgNomqtQ7pIgwjt/pprazcOFoJJzOtkNqO4hpfbUXT1oqs5YfEe/Trr+JIV8D9qhcQ3psl73KRdk/2XhsBcs+njBOd+JPOytyv5y1xc7si86t/gpgJm4CLXtz01MfD20zoqrh1EtleSodWKz3K9jJ839Vr8rj0aeyAMXtBUz8XagcDNyoNxAsq0XLktqI2neIzYUQCNvaUa/upoHX2rejlu2ONC1foNq5PrR+d9QOCldROZs8hMYL29qEMBMrVFB2rFR6wBFwAFcgANPvhhsv+rknh4t6TRaj7YENdZyMSmd0SWj+BsFVlvsIRmQYzQfxtmXokTIT0O512ylgAZhD5BB+95jbOgR3rM4Isayljtaq3IUFAErCFdSKT+B6ryKakG/njbkrnCTxCX76oWVJROicoEgACpeXHBZRx7xjbr0e8yXVC77X0GOvYaYlpywvOguBn2DFrkxtISQv9I4tSbyeet8+ik58pDk4YnNo77aIgT2K6dgPMXeDYjfpGBOq5brSj7fGunzYZhIMZcssyXRqVFXBVpprH9xfeaBsqg01RLC9Gi5MMJ8UVlwlpHnqrfdmxdz3fLfAHQb71TvdSCTA4ZQnGtG7URC78K4uFf41+knhDCZZMt30v9FcDSO0lTLtTyTYQrIWeFvQyplO8iqug=
+  app: mighty-castle-4465
+  on:
+    repo: graphs-for-society/parliamentary-minutes
+    branch: release
