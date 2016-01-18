@@ -33,9 +33,9 @@ talks of parliaments, this project provides you almost everything. We believe th
     python extraction/__init__.py --input data/all-talks-combined.json --function create_reactions_data
     ```
 In order to create a graph that focus on different semantic (e.g., What are the main topics in the speeches?), all you need to do is writing a function which extracts the topic information and returns signals like `create_reaction_data` does. That's all. 
-4. Upload the reactions extracted in step #3 above to your own graph (Please ensure that you have an environment variable named API\_KEY which contains your API key from Graph Commons).
+4. Upload the reactions extracted in step #3 above to your own graph
     ```
-    python graph/__init__.py data/extraction_output-1452724616000.json --graph_id YOUR_GRAPHS_ID
+    python graph/__init__.py data/extraction_output-1452724616000.json --graph_id YOUR_GRAPHS_ID --api-key YOUR_GRAPH_COMMONS_API_KEY
     ```
 
 # People
