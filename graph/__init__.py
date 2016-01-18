@@ -4,21 +4,10 @@ import os
 
 from graphcommons import GraphCommons, Signal
 
-# import ConfigParser
-#
-# config = ConfigParser.ConfigParser()
-#
-# config.read("config.ini")
 
-# api_key = config.get("api", "api_key")
-# graph_id = config.get("graph", "graph_id")
-
-api_key = os.environ['API_KEY']
-
-class GraphApi():
+class GraphApi(object):
 
     def __init__(self, api_key, graph_id):
-        # self.api_key = api_key
         if graph_id:
             self.graph_id = graph_id
 
@@ -30,7 +19,7 @@ class GraphApi():
         graph = self.api.new_graph(
                 name=graph_name,
                 subtitle=subtitle,
-                description=subtitle,
+                description=description,
                 signals=[]
         )
         print("Created a graph with id {}".format(graph['id']))
@@ -50,8 +39,8 @@ class GraphApi():
         f.close()
         return result
 
-    @staticmethod
-    def get_nodes_by_node_type(graph, node_type):
+    def get_nodes_by_node_type(self, node_type):
+        graph = self.get_graph()
         return filter(lambda node: node.type == node_type, graph.nodes)
 
     @staticmethod
@@ -91,12 +80,19 @@ class GraphApi():
 
 def main():
     import argparse
-
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument("--version", nargs="?")
     parser.add_argument("input_filename")
     parser.add_argument("--graph_id", nargs="?")
+    parser.add_argument("--api-key", required=False, default=None)
     args = parser.parse_args()
+
+    if args.api_key is not None:
+        api_key = args.api_key
+    else:
+        api_key = os.environ['API_KEY']
+
+    assert api_key is not None, "please either set API_KEY Environment Variable or provide --api-key while running."
 
     if args.graph_id:
         graph_id = args.graph_id
@@ -119,9 +115,6 @@ def main():
 
     graph.upsert_edges(signals)
 
-
-
 if __name__ == "__main__":
     main()
 
-    # push_changes(args.input_filename)
