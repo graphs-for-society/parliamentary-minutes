@@ -25,18 +25,18 @@ talks of parliaments, this project provides you almost everything. We believe th
 
 1. First ensure that there is a directory named data in the current directory
 2. Run the crawler. You can give a date range.
-```
-python crawl/__init__.py --start_date 11/01/2016 --end_date 13/01/2016
-```
+    ```
+    python crawl/__init__.py --start_date 11/01/2016 --end_date 13/01/2016
+    ```
 3. Information extraction part expects two parameters. `--input` is the talks you have just fetched in Step #1. `--function` is the information extraction function in `extraction/__init__.py`. In this example, we provided our function, `create_reaction_data`, whose aim is to extract reaction between parliament who gives the speech and the parties in The Grand National Assembly of Turkey.
-```
-python extraction/__init__.py --input data/all-talks-combined.json --function create_reactions_data
-```
+    ```
+    python extraction/__init__.py --input data/all-talks-combined.json --function create_reactions_data
+    ```
 In order to create a graph that focus on different semantic (e.g., What are the main topics in the speeches?), all you need to do is writing a function which extracts the topic information and returns signals like `create_reaction_data` does. That's all. 
 4. Upload the reactions extracted in step #3 above to your own graph (Please ensure that you have an environment variable named API\_KEY which contains your API key from Graph Commons).
-```
-python graph/__init__.py data/extraction_output-1452724616000.json --graph_id YOUR_GRAPHS_ID
-```
+    ```
+    python graph/__init__.py data/extraction_output-1452724616000.json --graph_id YOUR_GRAPHS_ID
+    ```
 
 # People
 
