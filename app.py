@@ -1,9 +1,5 @@
 """
-Flask Documentation:     http://flask.pocoo.org/docs/
-Jinja2 Documentation:    http://jinja.pocoo.org/2/documentation/
-Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
-
-This file creates your application.
+Webapp module
 """
 
 import json
@@ -14,21 +10,19 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
 
-from graph import GraphApi, api_key
+from graph import GraphApi
 
 graph_id = os.environ['GRAPH_ID']
+api_key = os.environ['API_KEY']
 
 graph = GraphApi(api_key, graph_id)
 
 ###
-# Routing for your application.
+# Routing
 ###
 
 @app.route('/', methods=['POST', 'GET'])
 def home():
-    # posted = False
-    # paths = ''
-    # print "girdi"
     if request.method == 'POST':
         # posted = True
         print "Query for {} --> {}".format(request.form['representative_name'], request.form['party'])
@@ -41,12 +35,6 @@ def home():
 ###
 # The functions below should be applicable to all Flask apps.
 ###
-
-# @app.route('/data/<file_name>.json')
-# def send_text_file(file_name):
-#     """Send your static text file."""
-#     file_dot_text = "data/" + file_name + '.json'
-#     return app.send_static_file(file_dot_text)
 
 @app.route('/data/<path:path>')
 def send_json(path):
