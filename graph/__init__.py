@@ -39,9 +39,21 @@ class GraphApi(object):
         f.close()
         return result
 
-    def get_nodes_by_node_type(self, node_type):
+    def get_nodes_by_node_type(self, node_type, query=None):
         graph = self.get_graph()
-        return filter(lambda node: node.type == node_type, graph.nodes)
+
+        def filter_function(node):
+            if node.type != node_type:
+                return False
+            if query:
+                if node.name.find(query) >= 0:
+                    return True
+                else:
+                    return False
+            else:
+                return True
+
+        return filter(filter_function, graph.nodes)
 
     @staticmethod
     def create_nodetype_dicts(nodes):
@@ -62,9 +74,9 @@ class GraphApi(object):
 
     def get_node_ids_types_names(self):
         types = self.get_all_node_types()
-        for t, nodes in types.iteritems():
+        for node_type, nodes in types.iteritems():
             for node in nodes:
-                yield node.name, node.id, t
+                yield node.name, node.id, node_type
 
     def get_paths(self, from_id, to_id, **kwargs):
 
