@@ -5,17 +5,6 @@ import ujson
 import codecs
 from collections import defaultdict as dd
 
-import datetime
-import time
-
-
-def convert_datetime_to_unix(d):
-    '''
-    :param d: datetime object
-    :return: unix time conversion in miliseconds
-    '''
-    return int(time.mktime(d.timetuple())*1000)
-
 TURKISH_ALPHABET_UPPER = "[A-ZÇĞİÖÜŞ]"
 TURKISH_ALPHABET = "[a-zçğıöüş]"
 
@@ -26,35 +15,68 @@ name_surname = r"(((%s+ ){2,})\(\w+\))" % TURKISH_ALPHABET_UPPER
 PARTIES = {u"AK PARTİ", "CHP", "HDP", "MHP"}
 reaction_regex = ur"\(((.*) sıralarından (\w+))\)"
 
+
 # regex = re.compile("BURCU KÖKSAL \([^\)]*\) ")
 # print '\n'.join(element[0] for element in re.findall(name_surname, text))
-#regex = re.compile("(BURCU KÖKSAL \(\w+\).*(?=({})))".format(name_surname))
+# regex = re.compile("(BURCU KÖKSAL \(\w+\).*(?=({})))".format(name_surname))
+
+# Create node as a dictionary object
+def create_node(node_name, node_type, reference_url="", properties={}, image_url=""):
+    d = dict()
+    d["action"] = "node_create"
+    d["name"] = node_name
+    d["type"] = node_type
+    if reference_url != "":
+        d["reference"] = reference_url
+    if properties:
+        d['properties'] = properties
+    if image_url != "":
+        d["image"] = image_url
+
+    return d
 
 
+# Create node type as a dictionary object
+def create_node_type(type_name, image_as_icon={}):
+    d = dict()
+    d["action"] = "nodetype_create"
+    d["name"] = type_name
+    if type(image_as_icon) == bool
+        d["image_as_icon"] = image_as_icon
+    return d
+
+# Create edge as a dictionary object
+def create_edge(from_name, from_type, edge_name, to_name, to_type, properties={}):
+    d = dict()
+    d["action"] = "edge_create"
+    d["from_name"] = from_name
+    d["from_type"] = from_type
+    d["name"] = edge_name
+    d["to_name"] = to_name
+    d["to_type"] = to_type
+    if properties:
+        d['properties'] = properties
+    return d
+
+
+# Create all used node types (in the beginning preferably)
 def create_node_types():
     outputs = []
 
     # Create Milletvekili nodetype
-    d = dict()
-    d["action"] = "nodetype_create"
-    d["name"] = "Milletvekili"
-    d["image_as_icon"] = False
+    d = create_node_type("Milletvekili", image_as_icon=False)
     outputs.append(d)
 
     # Create Parti nodetype
-    d = dict()
-    d["action"] = "nodetype_create"
-    d["name"] = "Parti"
-    # d["image_as_icon"] = False
+    d = create_node_type("Parti", image_as_icon=True)
     outputs.append(d)
 
     # Create Konuşma nodetype
-    d = dict()
-    d["action"] = "nodetype_create"
-    d["name"] = "Konuşma"
+    d = create_node_type("Konuşma")
     outputs.append(d)
 
     return outputs
+
 
 def get_party_names(party_text):
     matched_parties = []
@@ -94,11 +116,9 @@ def reps_convs(representative, lines):
 def create_reactions_data(input_file):
     records = read_scrape_data(input_file)
     outputs = create_node_types()
-    rep_names = {}
     for record in records:
         # Read representative properties
         representative = record["rep_name"]
-        rep_names[representative] = 1
         representative_party = record["representative_party"]
         if representative_party == "AK Parti":
             representative_party = "AK PARTİ"
@@ -119,72 +139,41 @@ def create_reactions_data(input_file):
             # Create party node if it doesn't exist
             if representative_party not in NODES['Parti']:
                 NODES['Parti'].add(representative_party)
-                d = dict()
-                d["action"] = "node_create"
-                d["name"] = representative_party
-                d["type"] = "Parti"
                 # TODO: Party Image Link
+                d = create_node(representative_party, "Parti")
                 outputs.append(d)
 
             # Create representative node if it doesn't exist
             if representative not in NODES['Milletvekili']:
                 NODES['Milletvekili'].add(representative)
-                d = dict()
-                d["action"] = "node_create"
-                d["name"] = representative
-                d["type"] = "Milletvekili"
-                d["reference"] = rep_profile_url
-                d["image"] = rep_profile_image_url
-                d['properties'] = {"is member of": representative_party}
+                d = create_node(representative, "Milletvekili", reference_url=rep_profile_url,
+                                image_url=rep_profile_image_url, properties={"is member of": representative_party})
                 outputs.append(d)
 
                 # Party to representative edge (is member of)
-                # d = dict()
-                # d["action"] = "edge_create"
-                # d["from_name"] = representative_party
-                # d["from_type"] = "Parti"
-                # d["name"] = "ÜYESİ"
-                # d["to_name"] = representative
-                # d["to_type"] = "Milletvekili"
+                # d = create_edge(representative_party, "Parti", "ÜYESİ", representative, "Milletvekili")
                 # outputs.append(d)
 
             # Create talk node
-            d = dict()
-            d["action"] = "node_create"
-            d["name"] = talk_name
-            d["type"] = "Konuşma"
-            d["properties"] = {"talk_date": talk_date, "talk_summary": "%s ..." % text[:100], "term_id": term_id}
-            d["reference"] = talk_url
+            d = create_node(talk_name, "Konuşma", reference_url=talk_url,
+                            properties={"talk_date": talk_date,
+                                        "talk_summary": "%s ..." % text[:100],
+                                        "term_id": term_id})
             outputs.append(d)
 
             # Create an edge from representative to the talk
-            d = dict()
-            d["action"] = "edge_create"
-            d["from_name"] = representative
-            d["from_type"] = "Milletvekili"
-            d["name"] = "KONUŞTU"
-            d["to_name"] = talk_name
-            d["to_type"] = "Konuşma"
+            d = create_edge(representative, "Milletvekili", "KONUŞTU", talk_name, "Konuşma")
             outputs.append(d)
 
         for match in matches:
-
             _, party_text, reaction = match
             parties = get_party_names(party_text)
             for party in parties:
-                d = dict()
-                d["action"] = "edge_create"
-                d["from_name"] = party
-                d["from_type"] = "Parti"
-                d["name"] = reaction.upper()
-                d["to_name"] = talk_name
-                d["to_type"] = "Konuşma"
-                #d['properties'] = {"speech_date": date, "speech_url": "www.buralar_yesillenecek.com",
-                #                  "term": term_id}
+                # properties = {"speech_date": date, "speech_url": "www.buralar_yesillenecek.com", "term": term_id}
+                d = create_edge(party, "Parti", reaction.upper(), talk_name, "Konuşma")
                 outputs.append(d)
 
-    create_output("data/rep_names.json", [{'rep_name': rep_name} for rep_name in sorted(rep_names.keys())], enclosed_in_array=True)
-    create_output("data/extraction_output-{}.json".format(convert_datetime_to_unix(datetime.datetime.now())), outputs)
+    create_output("extraction_output.json", outputs)
 
 
 def read_scrape_data(filename):
@@ -195,30 +184,13 @@ def read_scrape_data(filename):
     return records
 
 
-def create_output(filename, outputs, enclosed_in_array=False):
+def create_output(filename, outputs):
     f = codecs.open(filename, 'w')
-    delimiter = "\n"
-    if enclosed_in_array:
-        f.write("[\n")
-        delimiter = ",\n"
-    first = True
     for output in outputs:
-        if first:
-            f.write("%s" % (ujson.dumps(output)))
-            first = False
-        else:
-            f.write("%s%s" % (delimiter, ujson.dumps(output)))
-    if enclosed_in_array:
-        f.write("]\n")
+        f.write("%s\n" % ujson.dumps(output))
 
 
 def main():
-    '''
-    Run as
-    (first ensure that there is a directory named data in the current directory)
-    python crawl/__init__.py --input data/all-talks-combined.json --function create_reactions_data
-    :return:
-    '''
     import argparse
     parser = argparse.ArgumentParser(description='Extract information from Parliamentary minutes.')
     parser.add_argument("--input", required=True)
