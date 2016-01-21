@@ -5,6 +5,17 @@ import ujson
 import codecs
 from collections import defaultdict as dd
 
+import datetime
+import time
+
+
+def convert_datetime_to_unix(d):
+    '''
+    :param d: datetime object
+    :return: unix time conversion in miliseconds
+    '''
+    return int(time.mktime(d.timetuple())*1000)
+
 TURKISH_ALPHABET_UPPER = "[A-ZÇĞİÖÜŞ]"
 TURKISH_ALPHABET = "[a-zçğıöüş]"
 
@@ -15,10 +26,10 @@ name_surname = r"(((%s+ ){2,})\(\w+\))" % TURKISH_ALPHABET_UPPER
 PARTIES = {u"AK PARTİ", "CHP", "HDP", "MHP"}
 reaction_regex = ur"\(((.*) sıralarından (\w+))\)"
 
-
 # regex = re.compile("BURCU KÖKSAL \([^\)]*\) ")
 # print '\n'.join(element[0] for element in re.findall(name_surname, text))
-# regex = re.compile("(BURCU KÖKSAL \(\w+\).*(?=({})))".format(name_surname))
+#regex = re.compile("(BURCU KÖKSAL \(\w+\).*(?=({})))".format(name_surname))
+
 
 # Create node as a dictionary object
 def create_node(node_name, node_type, reference_url="", properties={}, image_url=""):
@@ -45,6 +56,7 @@ def create_node_type(type_name, image_as_icon={}):
         d["image_as_icon"] = image_as_icon
     return d
 
+
 # Create edge as a dictionary object
 def create_edge(from_name, from_type, edge_name, to_name, to_type, properties={}):
     d = dict()
@@ -59,7 +71,6 @@ def create_edge(from_name, from_type, edge_name, to_name, to_type, properties={}
     return d
 
 
-# Create all used node types (in the beginning preferably)
 def create_node_types():
     outputs = []
 
@@ -116,9 +127,11 @@ def reps_convs(representative, lines):
 def create_reactions_data(input_file):
     records = read_scrape_data(input_file)
     outputs = create_node_types()
+    rep_names = {}
     for record in records:
         # Read representative properties
         representative = record["rep_name"]
+        rep_names[representative] = 1
         representative_party = record["representative_party"]
         if representative_party == "AK Parti":
             representative_party = "AK PARTİ"
@@ -166,6 +179,7 @@ def create_reactions_data(input_file):
             outputs.append(d)
 
         for match in matches:
+
             _, party_text, reaction = match
             parties = get_party_names(party_text)
             for party in parties:
@@ -173,7 +187,8 @@ def create_reactions_data(input_file):
                 d = create_edge(party, "Parti", reaction.upper(), talk_name, "Konuşma")
                 outputs.append(d)
 
-    create_output("extraction_output.json", outputs)
+    create_output("data/rep_names.json", [{'rep_name': rep_name} for rep_name in sorted(rep_names.keys())], enclosed_in_array=True)
+    create_output("data/extraction_output-{}.json".format(convert_datetime_to_unix(datetime.datetime.now())), outputs)
 
 
 def read_scrape_data(filename):
@@ -184,13 +199,30 @@ def read_scrape_data(filename):
     return records
 
 
-def create_output(filename, outputs):
+def create_output(filename, outputs, enclosed_in_array=False):
     f = codecs.open(filename, 'w')
+    delimiter = "\n"
+    if enclosed_in_array:
+        f.write("[\n")
+        delimiter = ",\n"
+    first = True
     for output in outputs:
-        f.write("%s\n" % ujson.dumps(output))
+        if first:
+            f.write("%s" % (ujson.dumps(output)))
+            first = False
+        else:
+            f.write("%s%s" % (delimiter, ujson.dumps(output)))
+    if enclosed_in_array:
+        f.write("]\n")
 
 
 def main():
+    '''
+    Run as
+    (first ensure that there is a directory named data in the current directory)
+    python crawl/__init__.py --input data/all-talks-combined.json --function create_reactions_data
+    :return:
+    '''
     import argparse
     parser = argparse.ArgumentParser(description='Extract information from Parliamentary minutes.')
     parser.add_argument("--input", required=True)
