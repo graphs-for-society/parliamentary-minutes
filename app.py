@@ -4,7 +4,8 @@ Webapp module
 
 import json
 import os
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, \
+    Response
 
 app = Flask(__name__)
 
@@ -31,6 +32,20 @@ def home():
     else:
         return render_template('home.html')
 
+
+@app.route('/api/query', methods=['GET', 'POST'])
+def node_query():
+
+    if "node_type" in request.values and "query" in request.values:
+        pass
+    else:
+        return None
+
+    nodes = graph.get_nodes_by_node_type(request.values['node_type'], request.values['query'])
+
+    dat = json.dumps(nodes)
+    resp = Response(response=dat, status=200, mimetype="application/json")
+    return resp
 
 ###
 # The functions below should be applicable to all Flask apps.

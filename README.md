@@ -12,8 +12,8 @@ talks given by the members of the parliament. Project consists of three main par
 
 `Crawling` and `Graph Creation` parts are mostly static. However, `Information Extraction` determines the semantic of the graph.
 What does semantic mean? For instance, In [Creative Use of Complex Networks Hackathon](http://graphcommons.github.io/hackathons/2015/12/23/istanbul-creative-use-of-complex-networks/) we
-focussed on interactions made by other parties to parliaments talks. These interactions range from applause, laughter, defamatory remarks, insults and to even physical
-violence. In this example, semantic means that various reactions between speecher and parties in the graph. Without any effort, you can use this dataset where you reveal different semantics. Only by writing a function which extracts the information (like the function that extracts the reaction between speecher and parties), you can illustrate this by graph representation.
+focused on interactions made by other parties to parliaments talks. These interactions range from applause, laughter, defamatory remarks, insults and to even physical
+violence. In this example, semantic means that various reactions between the speaker and parties in the graph. Without any effort, you can use this dataset where you reveal different semantics. Only by writing a function which extracts the information (like the function that extracts the reaction between speecher and parties), you can illustrate this by graph representation.
 
 You can explore the resulting [graph](https://graphcommons.com/graphs/de6e0fd9-e5a6-42ac-86ad-b98c5a5d15ed?show=graph) we created in the hackathon. The visualization of the graph was made possible by the service given by [Graph Commons](http://graphcommons.com).
 
