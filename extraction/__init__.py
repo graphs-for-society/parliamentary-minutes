@@ -48,12 +48,11 @@ def create_node(node_name, node_type, reference_url="", properties={}, image_url
 
 
 # Create node type as a dictionary object
-def create_node_type(type_name, image_as_icon={}):
+def create_node_type(type_name, image_as_icon=False):
     d = dict()
     d["action"] = "nodetype_create"
     d["name"] = type_name
-    if type(image_as_icon) == bool
-        d["image_as_icon"] = image_as_icon
+    d['image_as_icon'] = image_as_icon
     return d
 
 
