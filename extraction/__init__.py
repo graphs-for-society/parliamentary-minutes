@@ -52,7 +52,7 @@ def create_node_type(type_name, image_as_icon={}):
     d = dict()
     d["action"] = "nodetype_create"
     d["name"] = type_name
-    if type(image_as_icon) == True
+    if type(image_as_icon) == True:
         d["image_as_icon"] = image_as_icon
     return d
 
