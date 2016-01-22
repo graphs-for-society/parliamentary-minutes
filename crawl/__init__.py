@@ -2,6 +2,8 @@ import datetime
 import glob
 import json
 import re
+import shutil
+import tempfile
 import time
 
 import requests
@@ -192,6 +194,8 @@ def run(start_date=None, end_date=None):
     except IOError, e:
         print e
 
+    temp_dir_pathname = tempfile.mkdtemp()
+
     done_list = open("crawl/done-representatives.lst", "a")
 
     for (index, rep_row) in zip(range(len(rep_list)), rep_list):
@@ -201,7 +205,7 @@ def run(start_date=None, end_date=None):
             print("{} of {} Rep. name: {}".format(index, len(rep_list), rep_row['representative_name'].encode('utf-8')))
             talks = get_rep_general_assembly_talks(rep_row, interval)
             for talk in talks:
-                f = open("crawl/representative-talks-rep_id-{}-date-{}.json".format(rep_row['representative_id'],
+                f = open("{}/representative-talks-rep_id-{}-date-{}.json".format(temp_dir_pathname, rep_row['representative_id'],
                                                                               talk['session_date']), "a")
                 f.write(json.dumps(talk) + "\n")
                 done_list.write(rep_row['representative_id'].encode('utf-8') + "\n")
@@ -210,16 +214,19 @@ def run(start_date=None, end_date=None):
 
     done_list.close()
 
-    f = open("data/all-talks-combined-{}-{}-{}.json".format(start_date,
+    f = open("all-talks-combined-{}-{}-{}.json".format(start_date,
                                                                end_date,
                                                                convert_datetime_to_unix(datetime.datetime.now())),
              "w")
-    for filename in glob.glob("crawl/representative-talks-rep_id-*-date-*.json"):
+    for filename in glob.glob("{}/representative-talks-rep_id-*-date-*.json".format(temp_dir_pathname)):
         with open(filename, "r") as talk_file:
             lines = talk_file.readlines()
             for line in lines:
                 f.write(line)
     f.close()
+
+    # removing the temporary directory
+    shutil.rmtree(temp_dir_pathname)
 
 
 if __name__ == "__main__":
