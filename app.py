@@ -26,9 +26,9 @@ graph = GraphApi(api_key, graph_id)
 def home():
     if request.method == 'POST':
         # posted = True
-        print "Query for {} --> {}".format(request.form['representative_name'], request.form['party'])
-        paths = graph.get_paths(unicode(request.form['representative_name']), unicode(request.form['party']))
-        return render_template('home.html', paths=paths)
+        print "Query for {} --> {}".format(request.form['representative_id'], request.form['party_id'])
+        paths = graph.get_paths(unicode(request.form['representative_id']), unicode(request.form['party_id']))
+        return render_template('home.html', paths=paths, request=request)
     else:
         return render_template('home.html')
 

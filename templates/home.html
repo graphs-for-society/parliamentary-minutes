@@ -1,71 +1,218 @@
 {% extends "base.html" %}
 
+{% block css %}
+
+    <link rel="stylesheet" href="/static/css/jquery.typeahead.min.css">
+
+    <style>
+
+        #form-car_v1 .typeahead-result .row {
+            display: table-row;
+        }
+
+        #form-car_v1 .typeahead-result .row > * {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        #form-car_v1 .typeahead-result .username {
+            padding: 0 10px;
+        }
+
+        #form-car_v1 .typeahead-result .id {
+            font-size: 12px;
+            color: #777;
+            font-variant: small-caps;
+        }
+
+        #form-car_v1 .typeahead-result .avatar img {
+            height: 26px;
+            width: 26px;
+        }
+
+        #form-car_v1 .typeahead-result .project-logo {
+            display: inline-block;
+            height: 100px;
+        }
+
+        #form-car_v1 .typeahead-result .project-logo img {
+            height: 100%;
+        }
+
+        #form-car_v1 .typeahead-result .project-information {
+            display: inline-block;
+            vertical-align: top;
+            padding: 20px 0 0 20px;
+        }
+
+        #form-car_v1 .typeahead-result .project-information > span {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #form-car_v1 .typeahead-result > ul > li > a small {
+            padding-left: 0px;
+            color: #999;
+        }
+
+        #form-car_v1 .typeahead-result .project-information li {
+            font-size: 12px;
+        }
+
+
+    </style>
+
+{% endblock %}
 
 {% block js %}
 
     {% if not paths %}
 
+        <script src="/static/js/jquery.typeahead.min.js"></script>
+
+
         <script>
-            var repNames = new Bloodhound({
-                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('rep_name'),
-                queryTokenizer: Bloodhound.tokenizers.whitespace,
-                identify: function (obj) {
-                    return obj.rep_name;
+
+            $('#car_v1-query').typeahead({
+                minLength: 1,
+                order: "asc",
+                dynamic: true,
+                delay: 500,
+                backdrop: {
+                    "background-color": "#fff"
                 },
-                prefetch: 'data/rep_names.json'
+                template: function (query, item) {
+
+                    return '<span class="row">' +
+                            '<span class="name">{{ "{{name}}" }}<small>({{ "{{id}}" }})</small></span>' +
+                            "</span>"
+                },
+                source: {
+                    representative: {
+                        display: "name",
+                        url: {
+                            type: "POST",
+                            url: "/api/query",
+                            data: {
+                                query: "{{query}}",
+                                node_type: "Milletvekili"
+                            },
+                            callback: {
+                                done: function (data) {
+                                    {#                                    for (var i = 0; i < data.data.user.length; i++) {#}
+                                    {#                                        if (data.data.user[i].username === 'running-coder') {#}
+                                    {#                                            data.data.user[i].status = 'owner';#}
+                                    {#                                        } else {#}
+                                    {#                                            data.data.user[i].status = 'contributor';#}
+                                    {#                                        }#}
+                                    {#                                    }#}
+                                    return data;
+                                }
+                            }
+                        }
+                    }
+                },
+                callback: {
+                    onClick: function (node, a, item, event) {
+
+                        // You can do a simple window.location of the item.href
+                        // alert(JSON.stringify(item.name));
+
+                    },
+                    onSubmit: function (node, form, item, event) {
+
+                        console.log(node)
+                        console.log(form)
+                        console.log(item)
+                        console.log(event)
+
+                        console.log('onSubmit override function triggered');
+
+                        form[0].value = item.id;
+                        form[0].name = "representative_id";
+                        form.submit();
+
+                    },
+                    onSendRequest: function (node, query) {
+                        console.log('request is sent, perhaps add a loading animation?')
+                    },
+                    onReceiveRequest: function (node, query) {
+                        console.log('request is received, stop the loading animation?')
+                    }
+                },
+                debug: true
             });
 
-            function repNamesWithDefaults(q, sync) {
-                if (q === '') {
-                    sync(repNames.get('Mehmet Naci BOSTANCI', 'Deniz BAYKAL'));
-                }
-
-                else {
-                    repNames.search(q, sync);
-                }
-            }
-
-            $('#rep_names .typeahead').typeahead({
-                        minLength: 0,
-                        highlight: true
-                    },
-                    {
-                        name: 'rep_names',
-                        display: 'rep_name',
-                        source: repNamesWithDefaults
-                    });
-
-            /*
-             Party names
-             */
-            var partyNames = new Bloodhound({
-                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('party_name'),
-                queryTokenizer: Bloodhound.tokenizers.whitespace,
-                identify: function (obj) {
-                    return obj.party_name;
+            $('#party_name').typeahead({
+                minLength: 1,
+                order: "asc",
+                dynamic: true,
+                delay: 500,
+                backdrop: {
+                    "background-color": "#fff"
                 },
-                prefetch: 'data/party_names.json'
+                template: function (query, item) {
+
+                    return '<span class="row">' +
+                            '<span class="name">{{ "{{name}}" }}<small>({{ "{{id}}" }})</small></span>' +
+                            "</span>"
+                },
+                source: {
+                    party: {
+                        display: "name",
+                        url: {
+                            type: "POST",
+                            url: "/api/query",
+                            data: {
+                                query: "{{query}}",
+                                node_type: "Parti"
+                            },
+                            callback: {
+                                done: function (data) {
+                                    {#                                    for (var i = 0; i < data.data.user.length; i++) {#}
+                                    {#                                        if (data.data.user[i].username === 'running-coder') {#}
+                                    {#                                            data.data.user[i].status = 'owner';#}
+                                    {#                                        } else {#}
+                                    {#                                            data.data.user[i].status = 'contributor';#}
+                                    {#                                        }#}
+                                    {#                                    }#}
+                                    return data;
+                                }
+                            }
+                        }
+                    }
+                },
+                callback: {
+                    onClick: function (node, a, item, event) {
+
+                        // You can do a simple window.location of the item.href
+                        // alert(JSON.stringify(item.name));
+
+                    },
+                    onSubmit: function (node, form, item, event) {
+
+                        console.log(node)
+                        console.log(form)
+                        console.log(item)
+                        console.log(event)
+
+                        console.log('onSubmit override function triggered');
+
+                        form[1].value = item.id;
+                        form[1].name = "party_id";
+                        form.submit();
+
+                    },
+                    onSendRequest: function (node, query) {
+                        console.log('request is sent, perhaps add a loading animation?')
+                    },
+                    onReceiveRequest: function (node, query) {
+                        console.log('request is received, stop the loading animation?')
+                    }
+                },
+                debug: true
             });
 
-            function partyNamesWithDefaults(q, sync) {
-                if (q === '') {
-                    sync(partyNames.get('CHP', 'AK PARTİ', 'HDP', 'MHP'));
-                }
-
-                else {
-                    partyNames.search(q, sync);
-                }
-            }
-
-            $('#party_names .typeahead').typeahead({
-                        minLength: 0,
-                        highlight: true
-                    },
-                    {
-                        name: 'party_names',
-                        display: 'party_name',
-                        source: partyNamesWithDefaults
-                    });
         </script>
 
     {% endif %}
@@ -77,12 +224,14 @@
 
     <div class="panel panel-default">
         <div class="panel-heading">Milletvekilinden partiye nasıl gidilir?</div>
+
         {% if paths %}
 
             <div class="panel-body">
-            <p>
-                {{ request['representative_name'] }}'den {{ request['party'] }}'ye giden tüm yollar aşağıda listelenmiştir.
-            </p>
+                <p>
+                    {{ request['representative_id'] }}'den {{ request['party_id'] }}'ye giden tüm
+                    yollar aşağıda listelenmiştir.
+                </p>
             </div>
 
             <table class="table">
@@ -98,21 +247,48 @@
 
             <div class="panel-body">
 
+                <form id="form-car_v1" name="form-car_v1" action="/" method="post">
+                    <div class="typeahead-container">
+                        <div class="typeahead-field">
 
-                <form action="/" method="post">
+                    <span class="typeahead-query">
+                        <input id="car_v1-query" name="car_v1[query]" type="search"
+                               placeholder="Milletvekili ismi giriniz" autocomplete="off">
+                    </span>
+                        </div>
+                        <div class="typeahead-field">
 
-                    <div id="rep_names">
-                        <input name="representative_name" class="typeahead" type="text"
-                               placeholder="Mehmet Naci BOSTANCI">
+                    <span class="typeahead-query">
+                        <input id="party_name" name="party_name[query]" type="search"
+                               placeholder="Parti ismi giriniz" autocomplete="off">
+                    </span>
+                        </div>
+
+                    <span class="typeahead-button">
+                        <button type="submit">
+                            Yolları bul
+                        </button>
+                    </span>
+
                     </div>
+            </div>
+            </form>
 
-                    <div id="party_names">
-                        <input name="party" class="typeahead" type="text" placeholder="CHP">
-                    </div>
 
-                    <input type="submit" value="find paths">
-
-                </form>
+            {#                <form >#}
+            {##}
+            {#                    <div id="rep_names">#}
+            {#                        <input class="typeahead" type="text"#}
+            {#                               placeholder="Mehmet Naci BOSTANCI">#}
+            {#                    </div>#}
+            {##}
+            {#                    <div id="party_names">#}
+            {#                        <input name="party" class="typeahead" type="text" placeholder="CHP">#}
+            {#                    </div>#}
+            {##}
+            {#                    <input type="submit" value="Find all corresponding paths">#}
+            {##}
+            {#                </form>#}
 
             </div>
 
