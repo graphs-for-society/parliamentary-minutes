@@ -216,7 +216,7 @@ def run(start_date=None, end_date=None):
     done_list.close()
 
     f = open("data/all-talks-combined-{}-{}-{}.json".
-             format(start_date.replace('/', ''), end_date.replace('/', ''),
+             format(datetime.datetime.strftime(interval[0], "%Y%m%d"), datetime.datetime.strftime(interval[1], "%Y%m%d"),
                     convert_datetime_to_unix(datetime.datetime.now())), "w+")
     for filename in glob.glob("{}/representative-talks-rep_id-*-date-*.json".format(temp_dir_pathname)):
         with open(filename, "r") as talk_file:
