@@ -5,8 +5,8 @@ import re
 import shutil
 import tempfile
 import time
-
 import requests
+import sys
 from bs4 import BeautifulSoup
 
 starting_url = "https://www.tbmm.gov.tr/develop/owa/milletvekillerimiz_sd.liste"
@@ -185,18 +185,19 @@ def run(start_date=None, end_date=None):
         interval = None
 
     done_dict = dict()
+    fn = 'crawl/done-representatives.lst'
     try:
-        done_list = open("crawl/done-representatives.lst", "r")
+        done_list = open(fn, "r")
         lines = done_list.readlines()
         for line in lines:
             done_dict[line.strip()] = 1
         done_list.close()
     except IOError, e:
-        print e
+        print >> sys.stderr, "We couldn't find {}. Creating a new one.".format(fn)
 
     temp_dir_pathname = tempfile.mkdtemp()
 
-    done_list = open("crawl/done-representatives.lst", "a")
+    done_list = open("crawl/done-representatives.lst", "a+")  # create a brand new if it doesn't exist.
 
     for (index, rep_row) in zip(range(len(rep_list)), rep_list):
         if rep_row['representative_id'] in done_dict:
@@ -214,10 +215,9 @@ def run(start_date=None, end_date=None):
 
     done_list.close()
 
-    f = open("all-talks-combined-{}-{}-{}.json".format(start_date,
-                                                               end_date,
-                                                               convert_datetime_to_unix(datetime.datetime.now())),
-             "w")
+    f = open("data/all-talks-combined-{}-{}-{}.json".
+             format(start_date.replace('/', ''), end_date.replace('/', ''),
+                    convert_datetime_to_unix(datetime.datetime.now())), "w+")
     for filename in glob.glob("{}/representative-talks-rep_id-*-date-*.json".format(temp_dir_pathname)):
         with open(filename, "r") as talk_file:
             lines = talk_file.readlines()
